@@ -1,0 +1,9 @@
+# Add to your global harness.d directory; replace paths for your machine.
+# The command must be on the daemon's PATH; use an absolute path if necessary.
+[harness.gargoyle]
+harness = "generic"
+args = ["-c", "export TERM=xterm-256color COLORTERM=truecolor; exec gargoyle --source /path/to/trace-exports"]
+enabled = true
+restart = "always"
+export_telemetry = false
+description = "Gargoyle — live OTLP trace inspector"
