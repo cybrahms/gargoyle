@@ -2,65 +2,57 @@
 
 import argparse
 import json
-import os
 import sys
-from pathlib import Path
 
+from .options import add_read_options
 from .store import Store
-from .tui import traces
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Query retained traces as JSON without opening the TUI."
-    )
-    parser.add_argument(
-        "--source",
-        type=Path,
-        default=Path(
-            os.environ.get("OTLP_SINK_DIR", "~/.local/state/otlp-sink")
-        ).expanduser(),
-    )
-    parser.add_argument(
-        "--workers-root", type=Path, help="optional read-only Crush enrichment"
-    )
+def add_arguments(parser):
+    add_read_options(parser)
     parser.add_argument(
         "--search",
         default="",
-        help="case-insensitive substring in worker, service, operation or trace ID",
+        metavar="TEXT",
+        help="case-insensitive substring in worker, service, operation or trace ID; retains the entire matching trace",
     )
     parser.add_argument(
-        "--hours",
-        type=int,
-        default=24,
-        help="latest span end within N hours; 0 means all retained traces",
-    )
-    parser.add_argument("--trace", help="exact trace ID")
-    parser.add_argument(
-        "--errors",
+        "--with-errors",
         action="store_true",
-        help="keep traces with at least one OTLP error status",
+        help="keep whole traces containing at least one OTLP error-status span",
     )
     parser.add_argument(
         "--spans",
         action="store_true",
-        help="output individual spans instead of trace summaries",
+        help="output all spans in matching traces instead of trace summaries",
     )
-    args = parser.parse_args(argv)
-    if args.hours < 0:
-        parser.error("--hours must be nonnegative")
-    data = Store(args.source, args.workers_root).read()
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="gargoyle query",
+        description="Filter retained traces and print JSON to stdout.",
+        allow_abbrev=False,
+    )
+    add_arguments(parser)
+    run(parser.parse_args(argv))
+
+
+def run(args):
+    from .tui import traces
+
+    data = Store(args.input, args.crush_workers_dir).read()
     if data["missingDirectory"] or data["warnings"]:
-        for warning in data["warnings"] or [f"Source not found: {args.source}"]:
+        for warning in data["warnings"] or [f"Input not found: {args.input}"]:
             print(warning, file=sys.stderr)
         return_code = 1
     else:
         return_code = 0
     rows = [
         t
-        for t in traces(data["spans"], args.search, args.hours)
-        if (not args.trace or t["id"] == args.trace)
-        and (not args.errors or t["errors"])
+        for t in traces(data["spans"], args.search, (0 if args.all else args.since))
+        if (not args.trace_id or t["id"] == args.trace_id)
+        and (not args.with_errors or t["errors"])
     ]
     output = (
         [s for t in rows for s in t["spans"]]

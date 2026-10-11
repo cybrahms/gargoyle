@@ -15,7 +15,7 @@ Python 3.11 or newer:
 
 ```sh
 uv tool install git+https://github.com/cybrahms/gargoyle.git
-gargoyle --demo
+gargoyle view --demo
 ```
 
 Or install with pip in a virtual environment:
@@ -23,7 +23,7 @@ Or install with pip in a virtual environment:
 ```sh
 python -m venv .venv
 .venv/bin/pip install git+https://github.com/cybrahms/gargoyle.git
-.venv/bin/gargoyle --demo
+.venv/bin/gargoyle view --demo
 ```
 
 The distribution is named `gargoyle-traces`; the command is `gargoyle`.
@@ -34,7 +34,7 @@ It is available from GitHub, not currently published to PyPI.
 Start the small bundled OTLP/HTTP server in one terminal:
 
 ```sh
-gargoyle receive --source ./traces
+gargoyle receive --output ./traces
 ```
 
 It listens on `127.0.0.1:4318`, accepts `POST /v1/traces` as JSON or binary
@@ -42,7 +42,7 @@ protobuf (including gzip), and appends standard OTLP JSON to disk. In another
 terminal, open the same directory:
 
 ```sh
-gargoyle --source ./traces
+gargoyle view --input ./traces
 ```
 
 Configure an instrumented application's OTLP/HTTP exporter:
@@ -103,9 +103,9 @@ is local; `--host` and `--port` change its address. It has no authentication or 
 ## Inspect your exports
 
 ```sh
-gargoyle --source /path/to/trace-exports
-gargoyle --source /path/to/export.json
-gargoyle --source /path/to/collector.jsonl.gz --trace <trace-id>
+gargoyle view --input /path/to/trace-exports
+gargoyle view --input /path/to/export.json
+gargoyle view --input /path/to/collector.jsonl.gz --trace-id <trace-id>
 ```
 
 Directories are scanned for `.json`, `.jsonl`, and their gzip equivalents.
@@ -114,8 +114,8 @@ holds one export. Both standard OTLP/HTTP JSON and sink records wrapped as
 `{"body": {"resourceSpans": [...]}}` are supported. Span fields use OTLP's
 camelCase JSON encoding and Unix nanosecond timestamps.
 
-The default source is `$OTLP_SINK_DIR`, falling back to
-`~/.local/state/otlp-sink`. `--demo` generates synthetic examples and reads no
+The default input/output directory is `$GARGOYLE_DATA_DIR`, falling back to
+`~/.local/state/gargoyle`. `--demo` generates synthetic examples and reads no
 local telemetry. The inspector reads files independently of the receiver.
 Existing Collector JSON file exports work as a source too.
 
@@ -131,25 +131,29 @@ For scripts, use the same filters without an interactive terminal:
 
 ```sh
 # Recent traces from a service/worker/operation:
-gargoyle query --source ./traces --search example-app --hours 1
+gargoyle query --input ./traces --search example-app --since 1h
 
 # All retained traces that recorded at least one OTLP error:
-gargoyle query --source ./traces --hours 0 --errors
+gargoyle query --input ./traces --all --with-errors
 
 # Every span in one trace:
-gargoyle query --source ./traces --hours 0 --trace <trace-id> --spans
+gargoyle query --input ./traces --all --trace-id <trace-id> --spans
 
 # Combine with jq to count spans by operation:
-gargoyle query --source ./traces --hours 0 --spans | \
+gargoyle query --input ./traces --all --spans | \
   jq 'group_by(.name) | map({operation: .[0].name, count: length})'
 ```
 
 Output is a JSON array of summaries (`id`, `worker`, `span_count`, `errors`,
 `start`, `end`), or individual spans with `--spans`. Start/end timestamps are Unix
-milliseconds. `--errors` retains entire traces containing errors, including their
-other spans. `--workers-root` also enables enrichment in query output. Missing
+milliseconds. `--with-errors` retains entire traces containing errors, including their
+other spans. `--crush-workers-dir` also enables enrichment in query output. Missing
 sources/read failures go to stderr and produce a nonzero exit code; partial
 readable results still appear on stdout.
+
+With no arguments, `gargoyle` opens `view`. `gargoyle --help` lists the commands;
+each command has its own `--help`. `--demo` is exclusive to `view` and rejects
+input paths, enrichment and trace/time filters.
 
 ## Navigation
 
@@ -183,11 +187,11 @@ When running on a remote Mac, `pbcopy` copies to that Mac's clipboard.
 ## Optional Crush enrichment
 
 ```sh
-gargoyle --source /path/to/exports --workers-root /path/to/workers
+gargoyle view --input /path/to/exports --crush-workers-dir /path/to/workers
 ```
 
 With this option, worker names from `fleet.worker` or `harness.name` select
-`<workers-root>/<worker>/data/crush.db`. Databases are opened read-only. Without
+`<crush-workers-dir>/<worker>/data/crush.db`. Databases are opened read-only. Without
 this option Gargoyle does not access worker databases.
 
 Tool calls match only when session, tool name, and exact start time identify one
@@ -242,7 +246,7 @@ uv run python -m unittest discover -s tests -v
 uv run ruff check .
 uv run ruff format --check .
 uv build
-uv run gargoyle --demo
+uv run gargoyle view --demo
 uv run gargoyle receive --help
 uv run gargoyle query --help
 ```

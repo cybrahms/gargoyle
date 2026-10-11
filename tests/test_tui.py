@@ -80,6 +80,9 @@ class InteractionTest(unittest.IsolatedAsyncioTestCase):
             await app.workers.wait_for_complete()
             await pilot.pause()
             self.assertEqual(app.focused.id, "traces")
+            app.hours = 0.5
+            await pilot.press("t")
+            self.assertEqual(app.hours, 24)
             await pilot.press("l")
             self.assertEqual(app.focused.id, "waterfall")
             await pilot.press("j")

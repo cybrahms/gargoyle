@@ -1,64 +1,89 @@
-"""Command-line entry point."""
+"""Command-line entry point with discoverable subcommands."""
 
 import argparse
 import json
-import os
 import sys
 import tempfile
 from pathlib import Path
 
 from . import __version__
-from .store import Store
-from .tui import Inspector
+from .options import add_read_options
 
 
-def main():
-    if len(sys.argv) > 1 and sys.argv[1] == "receive":
-        from .receiver import main as receive
+def build_parser():
+    from .query import add_arguments as query_arguments
+    from .receiver import add_arguments as receive_arguments
 
-        receive(sys.argv[2:])
-        return
-    if len(sys.argv) > 1 and sys.argv[1] == "query":
-        from .query import main as query
-
-        query(sys.argv[2:])
-        return
     parser = argparse.ArgumentParser(
-        description="Live terminal inspector for retained OTLP traces. Also: gargoyle receive --help; gargoyle query --help."
+        prog="gargoyle",
+        description="Capture, inspect and query retained OTLP traces.",
+        allow_abbrev=False,
     )
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"
     )
-    parser.add_argument(
-        "--source",
-        type=Path,
-        default=Path(
-            os.environ.get("OTLP_SINK_DIR", "~/.local/state/otlp-sink")
-        ).expanduser(),
-        help="JSON/JSONL file or directory (also gzip); default: OTLP_SINK_DIR or ~/.local/state/otlp-sink",
+    commands = parser.add_subparsers(dest="command", required=True)
+    view = commands.add_parser(
+        "view", help="open the interactive trace inspector", allow_abbrev=False
     )
-    parser.add_argument(
-        "--workers-root",
-        type=Path,
-        help="optional Crush enrichment: <root>/<worker>/data/crush.db",
-    )
-    parser.add_argument("--trace", help="initial trace ID")
-    parser.add_argument(
+    add_read_options(view)
+    view.add_argument(
         "--demo",
         action="store_true",
-        help="show synthetic traces without reading local data",
+        help="inspect synthetic traces; cannot be combined with input, enrichment or filters",
     )
-    args = parser.parse_args()
+    receive = commands.add_parser(
+        "receive",
+        help="receive OTLP/HTTP traces and write JSONL files",
+        allow_abbrev=False,
+    )
+    receive_arguments(receive)
+    query = commands.add_parser(
+        "query",
+        help="read and filter retained traces; print JSON to stdout",
+        allow_abbrev=False,
+    )
+    query_arguments(query)
+    return parser
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    parser = build_parser()
+    args = parser.parse_args(argv or ["view"])
+    if args.command == "receive":
+        from .receiver import run
+
+        run(args)
+        return
+    if args.command == "query":
+        from .query import run
+
+        run(args)
+        return
+    if args.demo and any(
+        flag in {option.split("=", 1)[0] for option in argv}
+        for flag in ("--input", "--crush-workers-dir", "--trace-id", "--since", "--all")
+    ):
+        parser.error(
+            "--demo cannot be combined with input, enrichment or trace/time filters"
+        )
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         parser.exit(
-            2, "gargoyle needs an interactive terminal (try gargoyle --help).\n"
+            2,
+            "gargoyle view needs an interactive terminal; use gargoyle query for JSON output.\n",
         )
+    from .store import Store
+    from .tui import Inspector
+
     if args.demo:
         from .demo import export
 
         with tempfile.TemporaryDirectory(prefix="gargoyle-demo-") as directory:
             source = Path(directory) / "demo.json"
             source.write_text(json.dumps(export()))
-            Inspector(Store(source), args.trace).run()
+            Inspector(Store(source)).run()
     else:
-        Inspector(Store(args.source, args.workers_root), args.trace).run()
+        app = Inspector(Store(args.input, args.crush_workers_dir), args.trace_id)
+        app.hours = 0 if args.all else args.since
+        app.run()

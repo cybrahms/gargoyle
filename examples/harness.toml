@@ -2,7 +2,7 @@
 # The command must be on the daemon's PATH; use an absolute path if necessary.
 [harness.gargoyle]
 harness = "generic"
-args = ["-c", "export TERM=xterm-256color COLORTERM=truecolor; exec gargoyle --source /path/to/trace-exports"]
+args = ["-c", "export TERM=xterm-256color COLORTERM=truecolor; exec gargoyle view --input /path/to/trace-exports"]
 enabled = true
 restart = "always"
 export_telemetry = false
@@ -11,7 +11,7 @@ description = "Gargoyle — live OTLP trace inspector"
 # Optional receiver. Use the same directory as the inspector above.
 [harness.gargoyle-receiver]
 harness = "generic"
-args = ["-c", "exec gargoyle receive --source /path/to/trace-exports"]
+args = ["-c", "exec gargoyle receive --output /path/to/trace-exports"]
 enabled = true
 restart = "always"
 export_telemetry = false

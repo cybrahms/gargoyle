@@ -443,7 +443,7 @@ class Inspector(App):
         self.query_one("#search").focus()
 
     def action_range(self):
-        self.hours = {24: 1, 1: 0, 0: 24}[self.hours]
+        self.hours = {24: 1, 1: 0, 0: 24}.get(self.hours, 24)
         self.rebuild_traces()
         self.update_status()
 

@@ -19,15 +19,15 @@ class QueryTest(unittest.TestCase):
     def query(self, *args):
         output = io.StringIO()
         with redirect_stdout(output):
-            main(["--source", str(self.source), *args])
+            main(["--input", str(self.source), *args])
         return json.loads(output.getvalue())
 
     def test_search_error_filter_and_span_output(self):
-        rows = self.query("--search", "REVIEW", "--hours", "1", "--errors")
+        rows = self.query("--search", "REVIEW", "--since", "1h", "--with-errors")
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["worker"], "review-worker")
         self.assertEqual(rows[0]["span_count"], 8)
-        spans = self.query("--trace", rows[0]["id"], "--spans", "--hours", "0")
+        spans = self.query("--trace-id", rows[0]["id"], "--spans", "--all")
         self.assertEqual(len(spans), 8)
         self.assertEqual(sum(s["error"] for s in spans), 1)
         self.assertEqual(self.query("--search", "not-found"), [])
@@ -41,7 +41,7 @@ class QueryTest(unittest.TestCase):
                     s["endTimeUnixNano"] = "2000000000"
         self.source.write_text(json.dumps(body))
         self.assertEqual(self.query(), [])
-        self.assertEqual(len(self.query("--hours", "0")), 3)
+        self.assertEqual(len(self.query("--all")), 3)
 
     def test_missing_source_returns_failure_and_empty_array(self):
         self.source.unlink()
@@ -51,7 +51,7 @@ class QueryTest(unittest.TestCase):
             redirect_stderr(errors),
             self.assertRaises(SystemExit) as raised,
         ):
-            main(["--source", str(self.source)])
+            main(["--input", str(self.source)])
         self.assertEqual(raised.exception.code, 1)
         self.assertEqual(json.loads(output.getvalue()), [])
-        self.assertIn("Source not found", errors.getvalue())
+        self.assertIn("Input not found", errors.getvalue())

@@ -1,6 +1,5 @@
 """Small OTLP/HTTP trace receiver with bounded bodies and rotating JSONL output."""
 
-import argparse
 import base64
 import gzip
 import io
@@ -191,30 +190,59 @@ def make_server(
     return ThreadingHTTPServer((host, port), Handler)
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Receive OTLP/HTTP traces and append rotating JSONL files."
+def add_arguments(parser):
+    from .options import data_directory
+
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=data_directory(),
+        metavar="DIRECTORY",
+        help="directory to write received OTLP traces as JSONL; default: GARGOYLE_DATA_DIR or ~/.local/state/gargoyle",
     )
     parser.add_argument(
-        "--source",
-        type=Path,
-        default=Path(
-            os.environ.get("OTLP_SINK_DIR", "~/.local/state/otlp-sink")
-        ).expanduser(),
-        help="output directory shared with the inspector",
+        "--host",
+        default="127.0.0.1",
+        help="address to bind the HTTP listener (default: 127.0.0.1)",
     )
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=4318)
-    parser.add_argument("--max-body-mib", type=int, default=16)
-    parser.add_argument("--max-file-mib", type=int, default=64)
-    parser.add_argument("--min-free-mib", type=int, default=256)
-    args = parser.parse_args(argv)
-    if args.max_body_mib <= 0 or args.max_file_mib <= 0 or args.min_free_mib < 0:
-        parser.error(
-            "body/file limits must be positive; free-space reserve must be nonnegative"
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=4318,
+        help="HTTP listener port; 0 chooses an available port (default: 4318)",
+    )
+    parser.add_argument(
+        "--max-body-mib",
+        type=int,
+        default=16,
+        help="maximum request size before and after gzip decoding (default: 16 MiB)",
+    )
+    parser.add_argument(
+        "--max-file-mib",
+        type=int,
+        default=64,
+        help="rotate before a JSONL file exceeds this size (default: 64 MiB)",
+    )
+    parser.add_argument(
+        "--min-free-mib",
+        type=int,
+        default=256,
+        help="disk space to leave free; reject writes below this reserve (default: 256 MiB)",
+    )
+
+
+def run(args):
+    if (
+        args.max_body_mib <= 0
+        or args.max_file_mib <= 0
+        or args.min_free_mib < 0
+        or not 0 <= args.port <= 65535
+    ):
+        raise SystemExit(
+            "body/file limits must be positive; disk reserve nonnegative; port between 0 and 65535"
         )
     with make_server(
-        args.source,
+        args.output,
         args.host,
         args.port,
         max_body=args.max_body_mib << 20,
@@ -222,7 +250,7 @@ def main(argv=None):
         min_free=args.min_free_mib << 20,
     ) as server:
         print(
-            f"OTLP traces: http://{args.host}:{server.server_port}/v1/traces → {args.source}",
+            f"OTLP traces: http://{args.host}:{server.server_port}/v1/traces → {args.output}",
             flush=True,
         )
         try:
