@@ -13,8 +13,18 @@ from .tui import Inspector
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "receive":
+        from .receiver import main as receive
+
+        receive(sys.argv[2:])
+        return
+    if len(sys.argv) > 1 and sys.argv[1] == "query":
+        from .query import main as query
+
+        query(sys.argv[2:])
+        return
     parser = argparse.ArgumentParser(
-        description="Live terminal inspector for retained OTLP traces."
+        description="Live terminal inspector for retained OTLP traces. Also: gargoyle receive --help; gargoyle query --help."
     )
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {__version__}"

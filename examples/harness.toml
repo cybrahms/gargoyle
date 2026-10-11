@@ -7,3 +7,12 @@ enabled = true
 restart = "always"
 export_telemetry = false
 description = "Gargoyle — live OTLP trace inspector"
+
+# Optional receiver. Use the same directory as the inspector above.
+[harness.gargoyle-receiver]
+harness = "generic"
+args = ["-c", "exec gargoyle receive --source /path/to/trace-exports"]
+enabled = true
+restart = "always"
+export_telemetry = false
+description = "Gargoyle — local OTLP/HTTP receiver to disk"

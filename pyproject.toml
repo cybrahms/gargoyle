@@ -4,13 +4,17 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gargoyle-traces"
-version = "0.1.0"
+version = "0.2.0"
 description = "A live terminal inspector for retained OpenTelemetry traces"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{name = "cybrahms"}]
-dependencies = ["textual>=8.2.8,<9"]
+dependencies = [
+    "googleapis-common-protos>=1.65,<2",
+    "opentelemetry-proto>=1.30,<2",
+    "textual>=8.2.8,<9",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
