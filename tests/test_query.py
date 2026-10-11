@@ -5,8 +5,8 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from gargoyle.demo import export
-from gargoyle.query import main
+from scope.demo import export
+from scope.query import main
 
 
 class QueryTest(unittest.TestCase):

@@ -6,9 +6,7 @@ from pathlib import Path
 
 
 def data_directory():
-    return Path(
-        os.environ.get("GARGOYLE_DATA_DIR", "~/.local/state/gargoyle")
-    ).expanduser()
+    return Path(os.environ.get("SCOPE_DATA_DIR", "~/.local/state/scope")).expanduser()
 
 
 def lookback(value):
@@ -28,7 +26,7 @@ def add_read_options(parser):
         type=Path,
         default=data_directory(),
         metavar="PATH",
-        help="read OTLP JSON/JSONL from a file or directory (also gzip); default: GARGOYLE_DATA_DIR or ~/.local/state/gargoyle",
+        help="read OTLP JSON/JSONL from a file or directory (also gzip); default: SCOPE_DATA_DIR or ~/.local/state/scope",
     )
     parser.add_argument(
         "--crush-workers-dir",

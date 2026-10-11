@@ -1,4 +1,4 @@
-"""Send an SDK trace to gargoyle receive (requires the Python OTLP exporter)."""
+"""Send an SDK trace to scope receive (requires the Python OTLP exporter)."""
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter

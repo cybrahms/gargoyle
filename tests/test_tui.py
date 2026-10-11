@@ -2,7 +2,7 @@
 
 import unittest
 
-from gargoyle.tui import clean, span_rows, traces
+from scope.tui import clean, span_rows, traces
 
 
 def span(sid, start, end, parent="", work=None):
@@ -57,7 +57,7 @@ class InteractionTest(unittest.IsolatedAsyncioTestCase):
 
         from textual.widgets import DataTable, Input
 
-        from gargoyle.tui import Details, Inspector
+        from scope.tui import Details, Inspector
 
         g = {
             "id": "task",
@@ -96,8 +96,8 @@ class InteractionTest(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(app.focused, Details)
             expected = app.details_text
             with (
-                patch("gargoyle.tui.shutil.which", return_value="/usr/bin/pbcopy"),
-                patch("gargoyle.tui.subprocess.run") as copied,
+                patch("scope.tui.shutil.which", return_value="/usr/bin/pbcopy"),
+                patch("scope.tui.subprocess.run") as copied,
             ):
                 await pilot.press("c")
                 await pilot.pause()
@@ -121,7 +121,7 @@ class RefreshTest(unittest.IsolatedAsyncioTestCase):
     async def test_tick_preserves_trace_span_focus_and_all_scroll_positions(self):
         from textual.widgets import DataTable
 
-        from gargoyle.tui import Details, Inspector
+        from scope.tui import Details, Inspector
 
         now = __import__("time").time() * 1000
         ss = []

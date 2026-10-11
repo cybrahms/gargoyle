@@ -9,7 +9,7 @@ without compatibility aliases.
 | Commands | Real `view`, `receive`, `query` subcommands | Root help now lists commands and command help shows the full invocation. |
 | Receiver path | `--output DIRECTORY` | Incoming exports are written here. Reader-only options are rejected. |
 | Reader path | `--input PATH` | Files are read here; a file or directory is accepted. Writer-only options are rejected. |
-| Default data location | `GARGOYLE_DATA_DIR`, then `~/.local/state/gargoyle` | One application-owned directory, shared by all three commands. |
+| Default data location | `SCOPE_DATA_DIR`, then `~/.local/state/scope` | One application-owned directory, shared by all three commands. |
 | Trace selection | `--trace-id ID` | The value is an exact ID, not trace content or a query expression. |
 | Time range | `--since 30m/1h/7d` or `--all` | Removes the undocumented numeric sentinel; time uses latest span end. |
 | Error filter | `--with-errors` | Keeps entire traces containing errors, including successful spans. |

@@ -85,7 +85,7 @@ class Details(VerticalScroll):
 
 
 class Inspector(App):
-    TITLE = "Gargoyle / Trace Inspector"
+    TITLE = "Scope / Trace Inspector"
     SUB_TITLE = "live OTLP inspection"
     CSS = """
     Screen { background: #18181b; color: #d4d4d8; }
@@ -138,7 +138,7 @@ class Inspector(App):
     def compose(self) -> ComposeResult:
         with Horizontal(id="brand"):
             yield Static("Trace inspector", id="brand-name")
-            yield Static("Gargoyle · live traces", id="brand-hint")
+            yield Static("Scope · live traces", id="brand-hint")
         yield Input(
             placeholder="/ Search worker, service, tool or trace ID", id="search"
         )

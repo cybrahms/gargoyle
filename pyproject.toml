@@ -3,8 +3,8 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gargoyle-traces"
-version = "0.3.0"
+name = "scope-traces"
+version = "0.4.0"
 description = "A live terminal inspector for retained OpenTelemetry traces"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,14 +24,14 @@ classifiers = [
 ]
 
 [project.scripts]
-gargoyle = "gargoyle.cli:main"
+scope = "scope.cli:main"
 
 [project.urls]
-Repository = "https://github.com/cybrahms/gargoyle"
-Issues = "https://github.com/cybrahms/gargoyle/issues"
+Repository = "https://github.com/cybrahms/scope"
+Issues = "https://github.com/cybrahms/scope/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/gargoyle"]
+packages = ["src/scope"]
 
 [dependency-groups]
 dev = ["ruff>=0.14,<1"]

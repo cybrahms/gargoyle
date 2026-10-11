@@ -30,7 +30,7 @@ def add_arguments(parser):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="gargoyle query",
+        prog="scope query",
         description="Filter retained traces and print JSON to stdout.",
         allow_abbrev=False,
     )

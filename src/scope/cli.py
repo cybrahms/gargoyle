@@ -15,7 +15,7 @@ def build_parser():
     from .receiver import add_arguments as receive_arguments
 
     parser = argparse.ArgumentParser(
-        prog="gargoyle",
+        prog="scope",
         description="Capture, inspect and query retained OTLP traces.",
         allow_abbrev=False,
     )
@@ -71,7 +71,7 @@ def main(argv=None):
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         parser.exit(
             2,
-            "gargoyle view needs an interactive terminal; use gargoyle query for JSON output.\n",
+            "scope view needs an interactive terminal; use scope query for JSON output.\n",
         )
     from .store import Store
     from .tui import Inspector
@@ -79,7 +79,7 @@ def main(argv=None):
     if args.demo:
         from .demo import export
 
-        with tempfile.TemporaryDirectory(prefix="gargoyle-demo-") as directory:
+        with tempfile.TemporaryDirectory(prefix="scope-demo-") as directory:
             source = Path(directory) / "demo.json"
             source.write_text(json.dumps(export()))
             Inspector(Store(source)).run()

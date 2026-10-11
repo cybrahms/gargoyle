@@ -1,4 +1,4 @@
-# Gargoyle
+# Scope
 
 A live terminal inspector for retained OpenTelemetry traces. Browse traces,
 inspect a timing waterfall, and copy span details. Capture exports with the
@@ -7,26 +7,26 @@ bundled OTLP/HTTP receiver, or point it at existing files.
 Built with Textual. Charcoal panels, muted colors, keyboard navigation, and a
 five-second refresh that preserves your selection and scroll position.
 
-![Gargoyle displaying synthetic traces](docs/demo.svg)
+![Scope displaying synthetic traces](docs/demo.svg)
 
 ## Install
 
 Python 3.11 or newer:
 
 ```sh
-uv tool install git+https://github.com/cybrahms/gargoyle.git
-gargoyle view --demo
+uv tool install git+https://github.com/cybrahms/scope.git
+scope view --demo
 ```
 
 Or install with pip in a virtual environment:
 
 ```sh
 python -m venv .venv
-.venv/bin/pip install git+https://github.com/cybrahms/gargoyle.git
-.venv/bin/gargoyle view --demo
+.venv/bin/pip install git+https://github.com/cybrahms/scope.git
+.venv/bin/scope view --demo
 ```
 
-The distribution is named `gargoyle-traces`; the command is `gargoyle`.
+The distribution is named `scope-traces`; the command is `scope`.
 It is available from GitHub, not currently published to PyPI.
 
 ## Capture traces locally
@@ -34,7 +34,7 @@ It is available from GitHub, not currently published to PyPI.
 Start the small bundled OTLP/HTTP server in one terminal:
 
 ```sh
-gargoyle receive --output ./traces
+scope receive --output ./traces
 ```
 
 It listens on `127.0.0.1:4318`, accepts `POST /v1/traces` as JSON or binary
@@ -42,7 +42,7 @@ protobuf (including gzip), and appends standard OTLP JSON to disk. In another
 terminal, open the same directory:
 
 ```sh
-gargoyle view --input ./traces
+scope view --input ./traces
 ```
 
 Configure an instrumented application's OTLP/HTTP exporter:
@@ -103,9 +103,9 @@ is local; `--host` and `--port` change its address. It has no authentication or 
 ## Inspect your exports
 
 ```sh
-gargoyle view --input /path/to/trace-exports
-gargoyle view --input /path/to/export.json
-gargoyle view --input /path/to/collector.jsonl.gz --trace-id <trace-id>
+scope view --input /path/to/trace-exports
+scope view --input /path/to/export.json
+scope view --input /path/to/collector.jsonl.gz --trace-id <trace-id>
 ```
 
 Directories are scanned for `.json`, `.jsonl`, and their gzip equivalents.
@@ -114,8 +114,8 @@ holds one export. Both standard OTLP/HTTP JSON and sink records wrapped as
 `{"body": {"resourceSpans": [...]}}` are supported. Span fields use OTLP's
 camelCase JSON encoding and Unix nanosecond timestamps.
 
-The default input/output directory is `$GARGOYLE_DATA_DIR`, falling back to
-`~/.local/state/gargoyle`. `--demo` generates synthetic examples and reads no
+The default input/output directory is `$SCOPE_DATA_DIR`, falling back to
+`~/.local/state/scope`. `--demo` generates synthetic examples and reads no
 local telemetry. The inspector reads files independently of the receiver.
 Existing Collector JSON file exports work as a source too.
 
@@ -131,16 +131,16 @@ For scripts, use the same filters without an interactive terminal:
 
 ```sh
 # Recent traces from a service/worker/operation:
-gargoyle query --input ./traces --search example-app --since 1h
+scope query --input ./traces --search example-app --since 1h
 
 # All retained traces that recorded at least one OTLP error:
-gargoyle query --input ./traces --all --with-errors
+scope query --input ./traces --all --with-errors
 
 # Every span in one trace:
-gargoyle query --input ./traces --all --trace-id <trace-id> --spans
+scope query --input ./traces --all --trace-id <trace-id> --spans
 
 # Combine with jq to count spans by operation:
-gargoyle query --input ./traces --all --spans | \
+scope query --input ./traces --all --spans | \
   jq 'group_by(.name) | map({operation: .[0].name, count: length})'
 ```
 
@@ -151,7 +151,7 @@ other spans. `--crush-workers-dir` also enables enrichment in query output. Miss
 sources/read failures go to stderr and produce a nonzero exit code; partial
 readable results still appear on stdout.
 
-With no arguments, `gargoyle` opens `view`. `gargoyle --help` lists the commands;
+With no arguments, `scope` opens `view`. `scope --help` lists the commands;
 each command has its own `--help`. `--demo` is exclusive to `view` and rejects
 input paths, enrichment and trace/time filters.
 
@@ -187,12 +187,12 @@ When running on a remote Mac, `pbcopy` copies to that Mac's clipboard.
 ## Optional Crush enrichment
 
 ```sh
-gargoyle view --input /path/to/exports --crush-workers-dir /path/to/workers
+scope view --input /path/to/exports --crush-workers-dir /path/to/workers
 ```
 
 With this option, worker names from `fleet.worker` or `harness.name` select
 `<crush-workers-dir>/<worker>/data/crush.db`. Databases are opened read-only. Without
-this option Gargoyle does not access worker databases.
+this option Scope does not access worker databases.
 
 Tool calls match only when session, tool name, and exact start time identify one
 call. Recorded message timestamps are assumed to use Unix seconds. Available
@@ -213,13 +213,13 @@ directory and replace the source and command paths for your machine:
 
 ```sh
 harness reload
-harness start gargoyle
-harness attach gargoyle
+harness start scope
+harness attach scope
 ```
 
 Use **Ctrl+b, then d** to detach while leaving the inspector running. `q` exits
 the child and the example's restart policy starts it again; use `harness stop
-gargoyle` to stop it deliberately. Each supervised instance has shared filters,
+scope` to stop it deliberately. Each supervised instance has shared filters,
 selection, and pause state for all attached users.
 
 `NO_COLOR` disables the palette. If a supervisor inherits it unintentionally,
@@ -246,9 +246,9 @@ uv run python -m unittest discover -s tests -v
 uv run ruff check .
 uv run ruff format --check .
 uv build
-uv run gargoyle view --demo
-uv run gargoyle receive --help
-uv run gargoyle query --help
+uv run scope view --demo
+uv run scope receive --help
+uv run scope query --help
 ```
 
 Tests cover append/partial records, rotation, deduplication, truncation,

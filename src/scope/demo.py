@@ -46,7 +46,7 @@ def export():
                         {"key": "service.name", "value": {"stringValue": service}}
                     ]
                 },
-                "scopeSpans": [{"scope": {"name": "gargoyle.demo"}, "spans": spans}],
+                "scopeSpans": [{"scope": {"name": "scope.demo"}, "spans": spans}],
             }
         )
     return {"resourceSpans": resources}

@@ -5,8 +5,8 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from gargoyle.cli import build_parser, main
-from gargoyle.options import data_directory
+from scope.cli import build_parser, main
+from scope.options import data_directory
 
 
 class CliTest(unittest.TestCase):
@@ -27,7 +27,7 @@ class CliTest(unittest.TestCase):
         self.assertEqual(receive.output, query.input)
         self.assertFalse(hasattr(receive, "input"))
         self.assertFalse(hasattr(query, "output"))
-        with patch.dict("os.environ", {"GARGOYLE_DATA_DIR": "~/custom-traces"}):
+        with patch.dict("os.environ", {"SCOPE_DATA_DIR": "~/custom-traces"}):
             parser = build_parser()
             for command, attribute in [
                 ("view", "input"),
@@ -63,12 +63,12 @@ class CliTest(unittest.TestCase):
     def test_help_discovers_commands_and_uses_complete_command_name(self):
         for argv, expected in [
             (["--help"], "{view,receive,query}"),
-            (["receive", "--help"], "gargoyle receive"),
-            (["query", "--help"], "gargoyle query"),
+            (["receive", "--help"], "scope receive"),
+            (["query", "--help"], "scope query"),
         ]:
             output = io.StringIO()
             with (
-                patch("sys.argv", ["gargoyle"]),
+                patch("sys.argv", ["scope"]),
                 redirect_stdout(output),
                 self.assertRaises(SystemExit) as raised,
             ):
@@ -95,7 +95,7 @@ class CliTest(unittest.TestCase):
     def test_receive_output_is_passed_to_writer(self):
         with (
             tempfile.TemporaryDirectory() as directory,
-            patch("gargoyle.receiver.make_server") as server,
+            patch("scope.receiver.make_server") as server,
             redirect_stdout(io.StringIO()),
         ):
             main(["receive", "--output", directory, "--port", "0"])
@@ -106,7 +106,7 @@ class CliTest(unittest.TestCase):
         with (
             patch("sys.stdin.isatty", return_value=True),
             patch("sys.stdout.isatty", return_value=True),
-            patch("gargoyle.tui.Inspector") as inspector,
+            patch("scope.tui.Inspector") as inspector,
         ):
             main([])
             store = inspector.call_args.args[0]

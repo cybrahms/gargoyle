@@ -13,9 +13,9 @@ from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import (
     ExportTraceServiceRequest,
 )
 
-from gargoyle.demo import export
-from gargoyle.receiver import convert_ids, make_server
-from gargoyle.store import Store
+from scope.demo import export
+from scope.receiver import convert_ids, make_server
+from scope.store import Store
 
 
 class ReceiverTest(unittest.TestCase):
@@ -89,7 +89,7 @@ class ReceiverTest(unittest.TestCase):
 
     def test_failed_disk_write_is_not_acknowledged(self):
         with patch(
-            "gargoyle.receiver.Writer.append", side_effect=OSError("disk unavailable")
+            "scope.receiver.Writer.append", side_effect=OSError("disk unavailable")
         ):
             self.assertEqual(self.request(b"{}")[0], 503)
         self.assertEqual(list(self.root.glob("*.jsonl")), [])

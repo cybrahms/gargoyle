@@ -198,7 +198,7 @@ def add_arguments(parser):
         type=Path,
         default=data_directory(),
         metavar="DIRECTORY",
-        help="directory to write received OTLP traces as JSONL; default: GARGOYLE_DATA_DIR or ~/.local/state/gargoyle",
+        help="directory to write received OTLP traces as JSONL; default: SCOPE_DATA_DIR or ~/.local/state/scope",
     )
     parser.add_argument(
         "--host",

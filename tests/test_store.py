@@ -6,8 +6,8 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from gargoyle.demo import export
-from gargoyle.store import Store
+from scope.demo import export
+from scope.store import Store
 
 
 class StoreTest(unittest.TestCase):
